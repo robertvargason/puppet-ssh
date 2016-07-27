@@ -3,7 +3,16 @@ module Puppet::Parser::Functions
 Returns all ip addresses of network interfaces (except lo) found by facter.
 EOS
     ) do |args|
-        interfaces = lookupvar('interfaces')
+
+        begin
+          interfaces = lookupvar('interfaces')
+        rescue ArgumentError => e
+          if e.message == 'uncaught throw :undefined_variable'
+            interfaces = nil
+          else
+            raise
+          end
+        end
 
         # In Puppet v2.7, lookupvar returns :undefined if the variable does
         # not exist.  In Puppet 3.x, it returns nil.
@@ -15,8 +24,24 @@ EOS
             interfaces = interfaces.split(',')
             interfaces.each do |iface|
                 if ! iface.include?('lo')
-                    ipaddr = lookupvar("ipaddress_#{iface}")
-                    ipaddr6 = lookupvar("ipaddress6_#{iface}")
+                    begin
+                      ipaddr = lookupvar("ipaddress_#{iface}")
+                    rescue ArgumentError => e
+                      if e.message == 'uncaught throw :undefined_variable'
+                        ipaddr = nil
+                      else
+                        raise
+                      end
+                    end
+                    begin
+                      ipaddr6 = lookupvar("ipaddress6_#{iface}")
+                    rescue ArgumentError => e
+                      if e.message == 'uncaught throw :undefined_variable'
+                        ipaddr6 = nil
+                      else
+                        raise
+                      end
+                    end
                     if ipaddr and (ipaddr!= :undefined)
                         result << ipaddr
                     end
@@ -27,8 +52,24 @@ EOS
             end
         else
             if ! interfaces.include?('lo')
-                ipaddr = lookupvar("ipaddress_#{interfaces}")
-                ipaddr6 = lookupvar("ipaddress6_#{interfaces}")
+                begin
+                  ipaddr = lookupvar("ipaddress_#{interfaces}")
+                rescue ArgumentError => e
+                  if e.message == 'uncaught throw :undefined_variable'
+                    ipaddr = nil
+                  else
+                    raise
+                  end
+                end
+                begin
+                  ipaddr6 = lookupvar("ipaddress6_#{interfaces}")
+                rescue ArgumentError => e
+                  if e.message == 'uncaught throw :undefined_variable'
+                    ipaddr6 = nil
+                  else
+                    raise
+                  end
+                end
                 if ipaddr and (ipaddr!= :undefined)
                     result << ipaddr
                 end
@@ -41,3 +82,4 @@ EOS
         return result
     end
 end
+
